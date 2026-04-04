@@ -3,12 +3,15 @@
 
 #include <pthread.h>
 #include <vector>
-#include <iostream>
+#include <functional>
+#include <queue>
 
 class ThreadPool {
 public:
+    // 인자 없는 함수 형태로 추상화 (Implict 구현 방식 모방)
+    using Task = std::function<void()>;
+
     enum State { ON, OFF, STANDBY };
-    enum SubmitFlag { POOL_WAIT, POOL_NOWAIT };
     enum ShutdownMode { POOL_COMPLETE, POOL_DISCARD }; 
 
     const int POOL_SUCCESS = 0;
@@ -21,7 +24,7 @@ public:
     // 소멸자
     virtual ~ThreadPool();
 
-    int submit(void (*f)(void*), void* p, SubmitFlag flag);
+    int submit(Task task);
     int shutdown(ShutdownMode how);
 
 protected:
@@ -29,18 +32,11 @@ protected:
     static void* worker_entry(void* param);
     void worker_loop(); 
 
-    struct Task {
-        void (*function)(void*);
-        void* param;
-    };
-
     // 기존 C 구조체의 필드들
-    std::vector<Task> queue_; 
+    std::queue<Task> tasks_; 
     std::vector<pthread_t> bees_;
 
-    size_t q_front_;
-    size_t q_len_;
-    size_t q_size_;
+    size_t q_limit_;
     size_t bee_size_;
     State state_;
 

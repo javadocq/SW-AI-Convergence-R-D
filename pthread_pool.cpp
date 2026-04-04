@@ -3,11 +3,10 @@
 
 // 생성자 -> 기존 pthread_pool_init의 역할
 ThreadPool::ThreadPool(size_t bee_size, size_t queue_size)
-    : q_front_(0), q_len_(0), q_size_(queue_size), bee_size_(bee_size), state_(ON)
+    : q_limit_(queue_size), bee_size_(bee_size), state_(ON)
 {
     
     /* 메모리 할당에 실패하면 예외를 던진다. */
-    queue_.resize(queue_size);
     bees_.resize(bee_size);
 
     /* 뮤텍스 및 조건변수 초기화 */
@@ -42,13 +41,13 @@ void* ThreadPool::worker_entry(void* param) {
 /* 실제 일꾼의 루프 함수 */
 void ThreadPool::worker_loop() {
     while(true) {
-        Task t;
+        Task task;
 
         /* 뮤텍스 잠금 */
         pthread_mutex_lock(&mutex_);
 
         /* 대기열이 비어 있고, 여전히 실행 중이면 계속 기다린다. */
-        while(q_len_ == 0 and state_ == ON) {
+        while(tasks_.empty() && state_ == ON) {
             pthread_cond_wait(&full_, &mutex_);
         }
 
@@ -56,22 +55,23 @@ void ThreadPool::worker_loop() {
          * 1) DISCARD 모드(OFF)로 들어왔을 때: 즉시 빠져나와 종료 
          * 2) COMPLETE 모드(STANDBY)로 들어왔고, 대기열이 비어 있으면 종료 
          */
-        if(state_ == OFF or (state_ == STANDBY and q_len_ == 0)) {
+        if(state_ == OFF or (state_ == STANDBY and tasks_.empty())) {
             pthread_mutex_unlock(&mutex_);
             break;
         }
 
         /* 대기열에서 작업 꺼내기 */
-        t = queue_[q_front_];
-        q_front_ = (q_front_ + 1) % q_size_;
-        q_len_--;
+        task = std::move(tasks_.front());
+        tasks_.pop();
         
         /* 빈 자리가 생겼음을 알림 */
         pthread_cond_signal(&empty_);
         pthread_mutex_unlock(&mutex_);
 
-        /* 꺼낸 작업 실행 */
-        t.function(t.param);
+        /* 꺼낸 '함수 객체'를 그냥 호출 (Implicit의 핵심) */
+        if (task) {
+            task();
+        }
     }
 
     /* 스레드 종료 */
@@ -79,7 +79,7 @@ void ThreadPool::worker_loop() {
 }
 
 // 작업 제출
-int ThreadPool::submit(void (*f)(void *p), void *p, SubmitFlag flag) 
+int ThreadPool::submit(Task task) 
 {
     /* 1) 뮤텍스 잠금 */
     pthread_mutex_lock(&mutex_);
@@ -91,22 +91,15 @@ int ThreadPool::submit(void (*f)(void *p), void *p, SubmitFlag flag)
     }
 
     /* 3) 대기열이 가득 찬 상황 처리 */
-    if (q_len_ == q_size_) {
-        if (flag == POOL_NOWAIT) {
-            pthread_mutex_unlock(&mutex_);
-            return POOL_FULL;
-        }
-        /* flag == POOL_WAIT인 경우, 빈 공간이 생길 때까지 기다린다 */
-        while (q_len_ == q_size_ && state_ == ON) {
+    if (tasks_.size() == q_limit_) {
+        // 여기서는 POOL_WAIT 모드를 기본으로 가정
+        while (tasks_.size() == q_limit_ && state_ == ON) {
             pthread_cond_wait(&empty_, &mutex_);
         }
     }
 
     /* 4) 대기열에 작업 삽입 */
-    size_t pos = (q_front_ + q_len_) % q_size_;
-    queue_[pos].function = f;
-    queue_[pos].param = p;
-    q_len_++;
+    tasks_.push(std::move(task));
 
     /* 5) 작업이 채워졌으니, 기다리던 worker 스레드를 깨운다 */
     pthread_cond_signal(&full_);
@@ -121,11 +114,7 @@ int ThreadPool::shutdown(ShutdownMode how)
     pthread_mutex_lock(&mutex_);
 
     /* 2) 상태 전환: OFF=즉시 종료(버림), STANDBY=대기열 비운 뒤 종료 */
-    if (how == POOL_DISCARD) {
-        state_ = OFF;
-    } else {
-        state_ = STANDBY;
-    }
+    state_ = (how == POOL_DISCARD ? OFF : STANDBY);
 
     /* 3) 작업이 없어도 대기 중인 모든 worker와 submit 대기 중인 스레드를 깨운다 */
     pthread_cond_broadcast(&full_);
