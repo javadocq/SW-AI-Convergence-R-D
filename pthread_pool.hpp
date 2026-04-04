@@ -5,12 +5,15 @@
 #include <vector>
 #include <iostream>
 
-
 class ThreadPool {
 public:
     enum State { ON, OFF, STANDBY };
     enum SubmitFlag { POOL_WAIT, POOL_NOWAIT };
     enum ShutdownMode { POOL_COMPLETE, POOL_DISCARD }; 
+
+    const int POOL_SUCCESS = 0;
+    const int POOL_FAIL = -1;
+    const int POOL_FULL = -2;
 
     // 생성자 
     ThreadPool(size_t bee_size, size_t queue_size);
