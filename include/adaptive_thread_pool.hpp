@@ -7,10 +7,11 @@
 #include <functional>
 #include <atomic>
 #include <mutex>
+#include <condition_variable>
 
 class AdativeThreadPool {
 public:
-    using Task = std::function<void>();
+    using Task = std::function<void()>();
 
     // 생성자 
     AdativeThreadPool(size_t min_thread_size, size_t max_thread_size);
@@ -26,7 +27,7 @@ public:
         {
             std::unique_lock<std::mutext> lock(mtx_);
             // 큐에 작업 추가
-            tasks_.push_back([task]() { task(); });
+            tasks_.push([task]() { task(); });
 
             if(tasks_.size() > active_thread && active_thread < max_thread_size) {
                 create_worker();
