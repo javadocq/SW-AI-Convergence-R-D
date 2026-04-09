@@ -22,10 +22,10 @@ public:
     template<class F, class... Args>
     void submit(F&& f, Args&&... args) {
         // 함수랑 인자를 하나로 묶어주는 bind 사용
-        auto task = std::bind(std::forward<F>(f), std::forward<Args>(args));
+        auto task = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
 
         {
-            std::unique_lock<std::mutext> lock(mtx_);
+            std::unique_lock<std::mutex> lock(mtx_);
             // 큐에 작업 추가
             tasks_.push([task]() { task(); });
 
