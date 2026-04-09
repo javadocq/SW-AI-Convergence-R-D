@@ -11,7 +11,7 @@
 
 class AdativeThreadPool {
 public:
-    using Task = std::function<void()>();
+    using Task = std::function<void()>;
 
     // 생성자 
     AdativeThreadPool(size_t min_thread_size, size_t max_thread_size);
