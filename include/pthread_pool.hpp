@@ -8,7 +8,6 @@
 
 class ThreadPool {
 public:
-    // 인자 없는 함수 형태로 추상화 (Implict 구현 방식 모방)
     using Task = std::function<void()>;
 
     enum State { ON, OFF, STANDBY };

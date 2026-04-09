@@ -25,7 +25,7 @@ int main() {
     auto start = std::chrono::system_clock::now();
 
     {
-        ThreadPool pool(total_tasks, 4);
+        ThreadPool pool(4, total_tasks);
 
         for (int i = 0; i < total_tasks; i++) {
             pool.submit([i]() { io_workload(i); });
