@@ -32,7 +32,7 @@ void AdativeThreadPool::create_worker() {
                 })) {
                     if(active_thread > min_thread_size) {
                         active_thread--;
-                        return; // 이 스레드 종료
+                        return; 
                     }
                     continue;
                 }

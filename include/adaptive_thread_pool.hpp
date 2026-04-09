@@ -29,7 +29,8 @@ public:
             // 큐에 작업 추가
             tasks_.push([task]() { task(); });
 
-            if(tasks_.size() > active_thread && active_thread < max_thread_size) {
+            // if(tasks_.size() > active_thread) 임계점의 효율을 늘리기 위해 * 2로 설정
+            if(tasks_.size() > (active_thread * 2) && active_thread < max_thread_size) {
                 create_worker();
             }
         }
