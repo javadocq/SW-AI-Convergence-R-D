@@ -5,13 +5,16 @@
 #include <vector>
 #include <string>
 
-// 공통 워크로드: 0.5초 동안 대기 (I/O 시뮬레이션)
-void cpu_workload(int id) {
-    long long sum = 0;
+// 공통 워크로드: I/O + CPU
+void mixed_workload(int id) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(500)); 
 
-    for(long long i = 0; i < 500000000; i++) {
+    volatile long long sum = 0; 
+    for(long long i = 0; i < 200000000; i++) {
         sum += i;
     }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
 
 int main() {
@@ -32,7 +35,7 @@ int main() {
         ThreadPool pool(4, total_tasks);
 
         for (int i = 0; i < total_tasks; i++) {
-            pool.submit([i]() { cpu_workload(i); });
+            pool.submit([i]() { mixed_workload(i); });
         }
     }
 
@@ -54,7 +57,7 @@ int main() {
         AdativeThreadPool pool(2, 12);
 
         for (int i = 0; i < total_tasks; i++) {
-            pool.submit([i]() { cpu_workload(i); });
+            pool.submit([i]() { mixed_workload(i); });
         }
     }
 
