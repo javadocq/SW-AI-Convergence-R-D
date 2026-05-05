@@ -67,7 +67,7 @@ void cpu_workload(int id) {
 }
 
 int main() {
-    int total_tasks = 100; // 100개의 작업
+    int total_tasks = 10000; // 100개의 작업
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (CPU Burst)   " << std::endl;
@@ -77,7 +77,17 @@ int main() {
     std::cout << "\n[Adaptive-A Mode (2, 12 threads) 테스트 시작] - 작업: " << total_tasks << "개" << std::endl;
     auto start = std::chrono::system_clock::now();
     {
-        AdaptiveThreadPool pool(2, 12); // Fixed typo: AdativeThreadPool -> AdaptiveThreadPool
+        AdaptiveThreadPool pool(2, 12);
+
+        std::cout << ">> 웜업 (30개 작업) 투입..." << std::endl;
+        for (int w = 0; w < 30; w++) {
+            pool.submit([w]() { cpu_workload(w); });
+        }
+        while(pool.get_completed_task_count() < 30) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        std::cout << ">> 웜업 완료, 본 작업 시작..." << std::endl;
+         // Fixed typo: AdativeThreadPool -> AdaptiveThreadPool
         for (int i = 0; i < total_tasks; i++) pool.submit([i]() { cpu_workload(i); });
         std::this_thread::sleep_for(std::chrono::seconds(7)); // Scale down 대기
         
@@ -126,6 +136,16 @@ int main() {
     start = std::chrono::system_clock::now();
     {
         AdaptiveThreadPoolB pool(2, 12);
+
+        std::cout << ">> 웜업 (30개 작업) 투입..." << std::endl;
+        for (int w = 0; w < 30; w++) {
+            pool.submit([w]() { cpu_workload(w); });
+        }
+        while(pool.get_completed_task_count() < 30) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        std::cout << ">> 웜업 완료, 본 작업 시작..." << std::endl;
+        
         for (int i = 0; i < total_tasks; i++) pool.submit([i]() { cpu_workload(i); });
         std::this_thread::sleep_for(std::chrono::seconds(7));
         
@@ -173,6 +193,16 @@ int main() {
     start = std::chrono::system_clock::now();
     {
         AdaptiveThreadPoolC pool(2, 12);
+
+        std::cout << ">> 웜업 (30개 작업) 투입..." << std::endl;
+        for (int w = 0; w < 30; w++) {
+            pool.submit([w]() { cpu_workload(w); });
+        }
+        while(pool.get_completed_task_count() < 30) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        std::cout << ">> 웜업 완료, 본 작업 시작..." << std::endl;
+        
         for (int i = 0; i < total_tasks; i++) pool.submit([i]() { cpu_workload(i); });
         std::this_thread::sleep_for(std::chrono::seconds(12));
         

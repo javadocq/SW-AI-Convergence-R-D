@@ -64,7 +64,7 @@ void io_workload(int id) {
 }
 
 int main() {
-    int total_tasks = 30; // 30개의 작업을 투척
+    int total_tasks = 10000; // 30개의 작업을 투척
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (I/O Bound)   " << std::endl; // Changed from Benchmark
@@ -77,7 +77,17 @@ int main() {
     auto start = std::chrono::system_clock::now();
 
     {
-        AdaptiveThreadPool pool(2, 10); // Fixed typo: AdativeThreadPool -> AdaptiveThreadPool
+        AdaptiveThreadPool pool(2, 10);
+
+        std::cout << ">> 웜업 (30개 작업) 투입..." << std::endl;
+        for (int w = 0; w < 30; w++) {
+            pool.submit([w]() { io_workload(w); });
+        }
+        while(pool.get_completed_task_count() < 30) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        std::cout << ">> 웜업 완료, 본 작업 시작..." << std::endl;
+         // Fixed typo: AdativeThreadPool -> AdaptiveThreadPool
 
         for (int i = 0; i < total_tasks; i++) {
             pool.submit([i]() { io_workload(i); });
@@ -135,6 +145,16 @@ int main() {
     {
         AdaptiveThreadPoolB pool(2, 10);
 
+        std::cout << ">> 웜업 (30개 작업) 투입..." << std::endl;
+        for (int w = 0; w < 30; w++) {
+            pool.submit([w]() { io_workload(w); });
+        }
+        while(pool.get_completed_task_count() < 30) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        std::cout << ">> 웜업 완료, 본 작업 시작..." << std::endl;
+        
+
         for (int i = 0; i < total_tasks; i++) {
             pool.submit([i]() { io_workload(i); });
         }
@@ -190,6 +210,16 @@ int main() {
 
     {
         AdaptiveThreadPoolC pool(2, 10);
+
+        std::cout << ">> 웜업 (30개 작업) 투입..." << std::endl;
+        for (int w = 0; w < 30; w++) {
+            pool.submit([w]() { io_workload(w); });
+        }
+        while(pool.get_completed_task_count() < 30) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        std::cout << ">> 웜업 완료, 본 작업 시작..." << std::endl;
+        
 
         for (int i = 0; i < total_tasks; i++) {
             pool.submit([i]() { io_workload(i); });

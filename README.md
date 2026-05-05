@@ -42,58 +42,63 @@
 
 ## 테스트 시나리오 및 실행 방법
 
-각 테스트를 컴파일하고 실행하려면 터미널에서 프로젝트의 루트 디렉토리로 이동한 다음 제공된 명령어를 사용하십시오.
+각 테스트를 컴파일하고 실행하려면 먼저 프로젝트를 GitHub에서 클론(clone)한 후 다음 단계를 따르십시오.
 
-### 1. CPU Burst 워크로드
-
-*   **파일**: `tests/test_cpu_bound.cpp`
-*   **목적**: 주로 CPU 사이클을 소비하는 무거운 계산 작업 부하에서 스레드 풀 성능을 평가합니다.
-*   **명령어**:
+1.  **프로젝트 클론**:
     ```bash
-    g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_cpu_bound.cpp -o test_cpu && ./test_cpu
+    git clone [Your-Repo-URL] # 여기에 실제 GitHub 저장소 URL을 입력하세요.
+    cd [Your-Repo-Name] # 클론된 저장소 디렉토리 이름
     ```
 
-### 2. I/O Burst 워크로드
-
-*   **파일**: `tests/test_io_bound.cpp`
-*   **목적**: 스레드 풀이 대기 시간이 긴 작업(예: 디스크 I/O, 네트워크 요청 시뮬레이션)을 얼마나 잘 처리하는지 평가합니다.
-*   **명령어**:
+2.  **필요한 도구 설치 (Ubuntu/Debian 기반 시스템)**:
+    `g++` 컴파일러가 설치되어 있지 않다면 다음 명령어로 설치합니다:
     ```bash
-    g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_io_bound.cpp -o test_io && ./test_io
+    sudo apt update
+    sudo apt install build-essential
     ```
 
-### 3. Mixed 워크로드
+3.  **각 테스트 컴파일 및 실행**:
+    각 테스트 시나리오는 웜업(warm-up) 30개 태스크를 먼저 수행한 후, 주요 태스크 10,000개를 실행하도록 구성되어 있으며, 결과는 `test_results.csv` 파일에 자동으로 추가됩니다.
 
-*   **파일**: `tests/test_mixed_bound.cpp`
-*   **목적**: 계산 및 I/O 작업이 모두 포함된 보다 현실적인 시나리오를 시뮬레이션합니다.
-*   **명령어**:
-    ```bash
-    g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_mixed_bound.cpp -o test_mixed && ./test_mixed
-    ```
-
-### 4. Burst Traffic 워크로드
-
-*   **파일**: `tests/test_burst_bound.cpp`
-*   **목적**: 작업 제출의 갑작스럽고 간헐적인 스파이크에 스레드 풀이 얼마나 잘 반응하는지 테스트합니다.
-*   **명령어**:
-    ```bash
-    g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_burst_bound.cpp -o test_burst && ./test_burst
-    ```
-
-### 5. Spike + Recovery 워크로드
-
-*   **파일**: `tests/test_spike_bound.cpp`
-*   **목적**: 강렬하고 짧은 기간의 작업 급증 시 스레드 풀의 성능과 이후 효율적으로 스케일다운하고 복구하는 능력을 측정합니다.
-*   **명령어**:
-    ```bash
-    g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_spike_bound.cpp -o test_spike && ./test_spike
-    ```
-
-### 6. 안정성 중심 워크로드
-
-*   **파일**: `tests/test_stability_bound.cpp`
-*   **목적**: 지속적이고 변동하는 부하(마이크로 버스트 포함)에서 과도한 스레드 생성/소멸을 피하면서 다양한 적응형 정책이 안정성을 얼마나 잘 유지하는지 평가합니다.
-*   **명령어**:
-    ```bash
-    g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_stability_bound.cpp -o test_stability && ./test_stability
-    ```
+    *   **1. CPU Burst 워크로드**
+        *   **파일**: `tests/test_cpu_bound.cpp`
+        *   **목적**: 주로 CPU 사이클을 소비하는 무거운 계산 작업 부하에서 스레드 풀 성능을 평가합니다.
+        *   **명령어**:
+            ```bash
+            g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_cpu_bound.cpp -o test_cpu && ./test_cpu
+            ```
+    *   **2. I/O Burst 워크로드**
+        *   **파일**: `tests/test_io_bound.cpp`
+        *   **목적**: 스레드 풀이 대기 시간이 긴 작업(예: 디스크 I/O, 네트워크 요청 시뮬레이션)을 얼마나 잘 처리하는지 평가합니다.
+        *   **명령어**:
+            ```bash
+            g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_io_bound.cpp -o test_io && ./test_io
+            ```
+    *   **3. Mixed 워크로드**
+        *   **파일**: `tests/test_mixed_bound.cpp`
+        *   **목적**: 계산 및 I/O 작업이 모두 포함된 보다 현실적인 시나리오를 시뮬레이션합니다.
+        *   **명령어**:
+            ```bash
+            g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_mixed_bound.cpp -o test_mixed && ./test_mixed
+            ```
+    *   **4. Burst Traffic 워크로드**
+        *   **파일**: `tests/test_burst_bound.cpp`
+        *   **목적**: 작업 제출의 갑작스럽고 간헐적인 스파이크에 스레드 풀이 얼마나 잘 반응하는지 테스트합니다.
+        *   **명령어**:
+            ```bash
+            g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_burst_bound.cpp -o test_burst && ./test_burst
+            ```
+    *   **5. Spike + Recovery 워크로드**
+        *   **파일**: `tests/test_spike_bound.cpp`
+        *   **목적**: 강렬하고 짧은 기간의 작업 급증 시 스레드 풀의 성능과 이후 효율적으로 스케일다운하고 복구하는 능력을 측정합니다.
+        *   **명령어**:
+            ```bash
+            g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_spike_bound.cpp -o test_spike && ./test_spike
+            ```
+    *   **6. 안정성 중심 워크로드**
+        *   **파일**: `tests/test_stability_bound.cpp`
+        *   **목적**: 지속적이고 변동하는 부하(마이크로 버스트 포함)에서 과도한 스레드 생성/소멸을 피하면서 다양한 적응형 정책이 안정성을 얼마나 잘 유지하는지 평가합니다.
+        *   **명령어**:
+            ```bash
+            g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_stability_bound.cpp -o test_stability && ./test_stability
+            ```

@@ -69,13 +69,13 @@ void run_spike_scenario(T& pool, const std::string& mode_name) {
     std::cout << "\n[" << mode_name << " 테스트 시작]" << std::endl;
     
     std::cout << "[Step 1] 갑작스러운 200개 스파이크 투입!" << std::endl;
-    for (int i = 0; i < 200; i++) pool.submit([i]() { spike_workload(i); });
+    for (int i = 0; i < 1000; i++) pool.submit([i]() { spike_workload(i); });
 
     std::cout << "[Step 2] 작업 완료 대기 및 Recovery(Scale-down) 측정 중..." << std::endl;
 }
 
 int main() {
-    int total_tasks = 200;
+    int total_tasks = 10000;
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (Spike + Recovery) " << std::endl;

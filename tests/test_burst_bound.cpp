@@ -75,7 +75,7 @@ void run_burst_scenario(T& pool, const std::string& mode_name, int total_tasks) 
     std::this_thread::sleep_for(std::chrono::seconds(2));
 
     std::cout << "[Step 2] 1차 Burst (40개 작업 투입)" << std::endl;
-    for (int i = 0; i < 40; i++) pool.submit([i]() { burst_workload(i); });
+    for (int i = 0; i < 5000; i++) pool.submit([i]() { burst_workload(i); });
 
     std::cout << "[Step 3] 소강 상태 대기 (4초)" << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(4));
@@ -87,7 +87,7 @@ void run_burst_scenario(T& pool, const std::string& mode_name, int total_tasks) 
 }
 
 int main() {
-    int total_tasks = 140; // 40 + 100
+    int total_tasks = 10000; // 40 + 100
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (Burst Traffic) " << std::endl;

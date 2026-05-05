@@ -92,7 +92,7 @@ void run_stability_scenario(T& pool, const std::string& mode_name) {
 }
 
 int main() {
-    int total_tasks = 200;
+    int total_tasks = 10000;
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (Stability)   " << std::endl;
