@@ -64,6 +64,7 @@ void cpu_workload(int id) {
     for(long long i = 0; i < 1000000; i++) {
         sum += i;
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 int main() {

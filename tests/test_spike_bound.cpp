@@ -60,7 +60,10 @@ void save_metrics_to_csv(
 
 // 공통 워크로드: 가벼운 작업
 void spike_workload(int id) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
+}
+
+void spike_workload_no_wait(int id) {
 }
 
 // 공통 테스트 시나리오 함수 (총 10000개 작업 한 번에 몰림)
@@ -72,7 +75,7 @@ void run_spike_scenario(T& pool, const std::string& mode_name) {
     for (int i = 0; i < 1000; i++) pool.submit([i]() { spike_workload(i); });
 
     std::cout << "[Step 2] 갑작스러운 8000개 스파이크 투입!" << std::endl;
-    for (int i = 0; i < 8000; i++) pool.submit([i]() { spike_workload(i); });
+    for (int i = 0; i < 8000; i++) pool.submit([i]() { spike_workload_no_wait(i) });
 
     std::cout << "[Step 3] 1000개 스파이크 투입!" << std::endl;
     for (int i = 0; i < 1000; i++) pool.submit([i]() { spike_workload(i); });
@@ -92,7 +95,7 @@ int main() {
     {
         AdaptiveThreadPool pool(2, 16); // Fixed typo
         run_spike_scenario(pool, "Adaptive-A Mode (2~16 threads)");
-        std::this_thread::sleep_for(std::chrono::seconds(2)); // Scale down 대기
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Scale down 대기
         
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;
@@ -138,7 +141,7 @@ int main() {
     {
         AdaptiveThreadPoolB pool(2, 16);
         run_spike_scenario(pool, "Adaptive-B Mode (2~16 threads)");
-        std::this_thread::sleep_for(std::chrono::seconds(2)); // Scale down 대기
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Scale down 대기
         
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;
@@ -184,7 +187,7 @@ int main() {
     {
         AdaptiveThreadPoolC pool(2, 16);
         run_spike_scenario(pool, "Adaptive-C Mode (2~16 threads)");
-        std::this_thread::sleep_for(std::chrono::seconds(3)); // Scale down 대기 (10초 이상)
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); 
         
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;
