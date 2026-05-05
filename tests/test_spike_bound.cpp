@@ -75,7 +75,7 @@ void run_spike_scenario(T& pool, const std::string& mode_name) {
     for (int i = 0; i < 1000; i++) pool.submit([i]() { spike_workload(i); });
 
     std::cout << "[Step 2] 갑작스러운 8000개 스파이크 투입!" << std::endl;
-    for (int i = 0; i < 8000; i++) pool.submit([i]() { spike_workload_no_wait(i) });
+    for (int i = 0; i < 8000; i++) pool.submit([i]() { spike_workload_no_wait(i); });
 
     std::cout << "[Step 3] 1000개 스파이크 투입!" << std::endl;
     for (int i = 0; i < 1000; i++) pool.submit([i]() { spike_workload(i); });
