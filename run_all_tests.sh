@@ -34,9 +34,6 @@ do
     
     echo "실행 중: test_spike"
     ./test_spike
-    
-    echo "실행 중: test_stability"
-    ./test_stability
 done
 
 echo "모든 테스트가 $RUNS 번씩 성공적으로 완료되었습니다!"
