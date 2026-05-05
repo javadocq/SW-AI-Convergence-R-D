@@ -61,13 +61,13 @@ void save_metrics_to_csv(
 // 공통 워크로드: CPU Burst (무거운 계산)
 void cpu_workload(int id) {
     volatile long long sum = 0;
-    for(long long i = 0; i < 500000000; i++) {
+    for(long long i = 0; i < 1000000; i++) {
         sum += i;
     }
 }
 
 int main() {
-    int total_tasks = 1000;
+    int total_tasks = 10000;
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (CPU Burst)   " << std::endl;

@@ -60,18 +60,18 @@ void save_metrics_to_csv(
 
 // 공통 워크로드: I/O + CPU
 void mixed_workload(int id) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(200)); 
+    std::this_thread::sleep_for(std::chrono::milliseconds(5)); 
 
     volatile long long sum = 0; 
-    for(long long i = 0; i < 100000000; i++) { // 계산량 조정
-        sum += i;
+    for(long long i = 0; i < 300000; i++) { // 계산량 조정
+        sum += i % 7;
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
 }
 
 int main() {
-    int total_tasks = 1000; 
+    int total_tasks = 10000; 
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (Mixed)       " << std::endl;

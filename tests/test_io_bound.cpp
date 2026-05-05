@@ -60,11 +60,11 @@ void save_metrics_to_csv(
 
 // 공통 워크로드: 0.5초 동안 대기 (I/O 시뮬레이션)
 void io_workload(int id) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 int main() {
-    int total_tasks = 1000; // 30개의 작업을 투척
+    int total_tasks = 10000; // 30개의 작업을 투척
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (I/O Bound)   " << std::endl; // Changed from Benchmark

@@ -63,19 +63,25 @@ void spike_workload(int id) {
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
 
-// 공통 테스트 시나리오 함수 (총 200개 작업 한 번에 몰림)
+// 공통 테스트 시나리오 함수 (총 10000개 작업 한 번에 몰림)
 template<typename T>
 void run_spike_scenario(T& pool, const std::string& mode_name) {
     std::cout << "\n[" << mode_name << " 테스트 시작]" << std::endl;
     
-    std::cout << "[Step 1] 갑작스러운 200개 스파이크 투입!" << std::endl;
+    std::cout << "[Step 1] 1000개 스파이크 투입!" << std::endl;
     for (int i = 0; i < 1000; i++) pool.submit([i]() { spike_workload(i); });
 
-    std::cout << "[Step 2] 작업 완료 대기 및 Recovery(Scale-down) 측정 중..." << std::endl;
+    std::cout << "[Step 2] 갑작스러운 8000개 스파이크 투입!" << std::endl;
+    for (int i = 0; i < 8000; i++) pool.submit([i]() { spike_workload(i); });
+
+    std::cout << "[Step 3] 1000개 스파이크 투입!" << std::endl;
+    for (int i = 0; i < 1000; i++) pool.submit([i]() { spike_workload(i); });
+
+    std::cout << "[Step 4] 작업 완료 대기 및 Recovery(Scale-down) 측정 중..." << std::endl;
 }
 
 int main() {
-    int total_tasks = 1000;
+    int total_tasks = 10000;
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (Spike + Recovery) " << std::endl;

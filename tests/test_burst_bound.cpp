@@ -61,7 +61,7 @@ void save_metrics_to_csv(
 // 공통 워크로드: 계산
 void burst_workload(int id) {
     volatile long long sum = 0;
-    for(long long i = 0; i < 200000000; i++) {
+    for(long long i = 0; i < 1000000; i++) {
         sum += i;
     }
 }
@@ -71,23 +71,29 @@ template<typename T>
 void run_burst_scenario(T& pool, const std::string& mode_name, int total_tasks) { // Added total_tasks
     std::cout << "\n[" << mode_name << " 테스트 시작]" << std::endl;
     
-    std::cout << "[Step 1] Idle 상태 (2초)" << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::cout << "[Step 1] 서서히 작업 주입 (1000개)" << std::endl;
+    for (int i = 0; i < 1000; i++) {
+        pool.submit([i]() { burst_workload(i); });
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
 
-    std::cout << "[Step 2] 1차 Burst (40개 작업 투입)" << std::endl;
-    for (int i = 0; i < 5000; i++) pool.submit([i]() { burst_workload(i); });
+    std::cout << "[Step 2] 1차 Burst (4000개 작업 투입)" << std::endl;
+    for (int i = 0; i < 4000; i++) pool.submit([i]() { burst_workload(i); });
 
-    std::cout << "[Step 3] 소강 상태 대기 (4초)" << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(4));
+    std::cout << "[Step 3] 서서히 작업 주입 (1000개)" << std::endl;
+    for (int i = 0; i < 1000; i++) {
+        pool.submit([i]() { burst_workload(i); });
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
 
-    std::cout << "[Step 4] 2차 Burst (100개 작업 투입)" << std::endl;
-    for (int i = 0; i < 100; i++) pool.submit([i]() { burst_workload(i); });
+    std::cout << "[Step 4] 2차 Burst (4000개 작업 투입)" << std::endl;
+    for (int i = 0; i < 4000; i++) pool.submit([i]() { burst_workload(i); });
 
     std::cout << "[Step 5] 잔여 작업 완료 대기 중..." << std::endl;
 }
 
 int main() {
-    int total_tasks = 1000;
+    int total_tasks = 10000;
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (Burst Traffic) " << std::endl;
