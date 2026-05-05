@@ -66,7 +66,7 @@ void burst_workload(int id) {
     }
 }
 
-// 공통 테스트 시나리오 함수 (총 140개 작업)
+// 공통 테스트 시나리오 함수
 template<typename T>
 void run_burst_scenario(T& pool, const std::string& mode_name, int total_tasks) { // Added total_tasks
     std::cout << "\n[" << mode_name << " 테스트 시작]" << std::endl;
@@ -98,7 +98,7 @@ int main() {
     {
         AdaptiveThreadPool pool(2, 12); // Fixed typo
         run_burst_scenario(pool, "Adaptive-A Mode (2~12 threads)", total_tasks); // Pass total_tasks
-        std::this_thread::sleep_for(std::chrono::seconds(7));
+        std::this_thread::sleep_for(std::chrono::seconds(2));
         
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;
@@ -144,7 +144,7 @@ int main() {
     {
         AdaptiveThreadPoolB pool(2, 12);
         run_burst_scenario(pool, "Adaptive-B Mode (2~12 threads)", total_tasks); // Pass total_tasks
-        std::this_thread::sleep_for(std::chrono::seconds(7));
+        std::this_thread::sleep_for(std::chrono::seconds(2));
         
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;
@@ -190,7 +190,7 @@ int main() {
     {
         AdaptiveThreadPoolC pool(2, 12);
         run_burst_scenario(pool, "Adaptive-C Mode (2~12 threads)", total_tasks); // Pass total_tasks
-        std::this_thread::sleep_for(std::chrono::seconds(12));
+        std::this_thread::sleep_for(std::chrono::seconds(3));
         
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;

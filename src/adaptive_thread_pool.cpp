@@ -38,7 +38,7 @@ void AdaptiveThreadPool::create_worker() {
                 std::unique_lock<std::mutex> lock(mtx_);
 
                 auto start_idle = std::chrono::steady_clock::now();
-                bool timeout = !cv_.wait_for(lock, std::chrono::seconds(5), [this] {
+                bool timeout = !cv_.wait_for(lock, std::chrono::seconds(1), [this] {
                     return stop_ || !tasks_.empty();
                 });
                 auto end_idle = std::chrono::steady_clock::now();

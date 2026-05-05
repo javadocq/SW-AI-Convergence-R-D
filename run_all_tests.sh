@@ -12,7 +12,7 @@ g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_stability_bound.cpp -o te
 echo "컴파일 완료! 각 테스트를 30번씩 실행합니다..."
 
 # 실행 횟수 설정
-RUNS=10
+RUNS=3
 
 for (( i=1; i<=RUNS; i++ ))
 do

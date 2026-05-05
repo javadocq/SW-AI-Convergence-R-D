@@ -94,7 +94,7 @@ int main() {
         }
         
         // 잠시 대기하여 작업 완료 및 스레드 축소(scale-down) 유도
-        std::this_thread::sleep_for(std::chrono::seconds(7));
+        std::this_thread::sleep_for(std::chrono::seconds(2));
 
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;
@@ -160,7 +160,7 @@ int main() {
         }
         
         // 잠시 대기하여 작업 완료 및 스레드 축소(scale-down) 유도 (B는 timeout 5초)
-        std::this_thread::sleep_for(std::chrono::seconds(7));
+        std::this_thread::sleep_for(std::chrono::seconds(2));
 
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;
@@ -226,7 +226,7 @@ int main() {
         }
         
         // 잠시 대기하여 작업 완료 및 스레드 축소(scale-down) 유도 (C는 timeout 10초)
-        std::this_thread::sleep_for(std::chrono::seconds(12));
+        std::this_thread::sleep_for(std::chrono::seconds(3));
 
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;

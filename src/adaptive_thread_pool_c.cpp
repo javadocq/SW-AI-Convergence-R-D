@@ -73,7 +73,7 @@ void AdaptiveThreadPoolC::create_worker() {
 
                 auto start_idle = std::chrono::steady_clock::now();
                 // Adaptive-C: idle 상태가 10초 이상 지속되면 스레드 감소
-                bool timeout = !cv_.wait_for(lock, std::chrono::seconds(10), [this] {
+                bool timeout = !cv_.wait_for(lock, std::chrono::seconds(2), [this] {
                     return stop_.load() || !tasks_.empty();
                 });
                 auto end_idle = std::chrono::steady_clock::now();

@@ -86,7 +86,7 @@ int main() {
     {
         AdaptiveThreadPool pool(2, 16); // Fixed typo
         run_spike_scenario(pool, "Adaptive-A Mode (2~16 threads)");
-        std::this_thread::sleep_for(std::chrono::seconds(7)); // Scale down 대기
+        std::this_thread::sleep_for(std::chrono::seconds(2)); // Scale down 대기
         
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;
@@ -132,7 +132,7 @@ int main() {
     {
         AdaptiveThreadPoolB pool(2, 16);
         run_spike_scenario(pool, "Adaptive-B Mode (2~16 threads)");
-        std::this_thread::sleep_for(std::chrono::seconds(7)); // Scale down 대기
+        std::this_thread::sleep_for(std::chrono::seconds(2)); // Scale down 대기
         
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;
@@ -178,7 +178,7 @@ int main() {
     {
         AdaptiveThreadPoolC pool(2, 16);
         run_spike_scenario(pool, "Adaptive-C Mode (2~16 threads)");
-        std::this_thread::sleep_for(std::chrono::seconds(13)); // Scale down 대기 (10초 이상)
+        std::this_thread::sleep_for(std::chrono::seconds(3)); // Scale down 대기 (10초 이상)
         
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;

@@ -71,7 +71,7 @@ void mixed_workload(int id) {
 }
 
 int main() {
-    int total_tasks = 1000; // 50개의 작업
+    int total_tasks = 1000; 
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (Mixed)       " << std::endl;
@@ -93,7 +93,7 @@ int main() {
         std::cout << ">> 웜업 완료, 본 작업 시작..." << std::endl;
          // Fixed typo
         for (int i = 0; i < total_tasks; i++) pool.submit([i]() { mixed_workload(i); });
-        std::this_thread::sleep_for(std::chrono::seconds(7)); 
+        std::this_thread::sleep_for(std::chrono::seconds(2)); 
         
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;
@@ -150,7 +150,7 @@ int main() {
         std::cout << ">> 웜업 완료, 본 작업 시작..." << std::endl;
         
         for (int i = 0; i < total_tasks; i++) pool.submit([i]() { mixed_workload(i); });
-        std::this_thread::sleep_for(std::chrono::seconds(7));
+        std::this_thread::sleep_for(std::chrono::seconds(2));
         
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;
@@ -207,7 +207,7 @@ int main() {
         std::cout << ">> 웜업 완료, 본 작업 시작..." << std::endl;
         
         for (int i = 0; i < total_tasks; i++) pool.submit([i]() { mixed_workload(i); });
-        std::this_thread::sleep_for(std::chrono::seconds(12));
+        std::this_thread::sleep_for(std::chrono::seconds(3));
         
         size_t completed = pool.get_completed_task_count();
         double avg_latency = completed > 0 ? (double)pool.get_total_latency_ms() / completed : 0;

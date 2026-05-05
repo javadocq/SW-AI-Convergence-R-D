@@ -68,7 +68,7 @@ void AdaptiveThreadPoolB::create_worker() {
                 auto start_idle = std::chrono::steady_clock::now();
                 // Adaptive-B: waiting time < 5ms and idle_time > threshold.
                 // 워커가 5초 동안 큐에서 작업을 받지 못하면 (idle 상태) 스레드를 줄인다.
-                bool timeout = !cv_.wait_for(lock, std::chrono::seconds(5), [this] {
+                bool timeout = !cv_.wait_for(lock, std::chrono::seconds(1), [this] {
                     return stop_.load() || !tasks_.empty();
                 });
                 auto end_idle = std::chrono::steady_clock::now();
