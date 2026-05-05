@@ -1,24 +1,58 @@
-#include "../include/adaptive_thread_pool.hpp"
-#include <thread>
+#include "../include/adaptive_thread_pool_c.hpp"
 
 // 생성자 구현
-AdativeThreadPool::AdativeThreadPool(size_t min_thread_size, size_t max_thread_size) 
+AdaptiveThreadPoolC::AdaptiveThreadPoolC(size_t min_thread_size, size_t max_thread_size) 
     :min_thread_size(min_thread_size), max_thread_size(max_thread_size), active_thread(0), stop_(false)
 {
-
     std::unique_lock<std::mutex> lock(mtx_);
-    for(int i = 0; i < min_thread_size; i++) {
+    for(size_t i = 0; i < min_thread_size; i++) {
         create_worker();
     }
+    monitor_ = std::thread(&AdaptiveThreadPoolC::monitor_loop, this);
 }
 
 // 소멸자 구현
-AdativeThreadPool::~AdativeThreadPool() {
+AdaptiveThreadPoolC::~AdaptiveThreadPoolC() {
     shutdown();
 }
 
+// 모니터링: 큐에 작업이 많은 상태가 3초 이상 지속되면 스레드 증가
+void AdaptiveThreadPoolC::monitor_loop() {
+    int high_queue_duration_ms = 0;
+    const int CHECK_INTERVAL_MS = 100;
+
+    while(!stop_) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(CHECK_INTERVAL_MS));
+        if (stop_) break;
+
+        bool should_create = false;
+        {
+            std::unique_lock<std::mutex> lock(mtx_);
+            // 큐의 길이가 스레드 수의 2배 이상인 상태를 "high"로 정의
+            if (tasks_.size() > (active_thread * 2)) {
+                high_queue_duration_ms += CHECK_INTERVAL_MS;
+            } else {
+                high_queue_duration_ms = 0; // 상태가 해제되면 초기화
+            }
+
+            // 3초 이상 지속되었는지 확인
+            if (high_queue_duration_ms >= 3000 && active_thread < max_thread_size) {
+                should_create = true;
+                high_queue_duration_ms = 0; // 증가 후 쿨타임 또는 초기화를 위해 0으로 설정
+            }
+        }
+
+        if (should_create) {
+            std::unique_lock<std::mutex> lock(mtx_);
+            if (active_thread < max_thread_size) {
+                create_worker();
+            }
+        }
+    }
+}
+
 // 스레드 생성
-void AdativeThreadPool::create_worker() {
+void AdaptiveThreadPoolC::create_worker() {
     active_thread++;
     thread_create_count++;
     resize_count++;
@@ -32,14 +66,15 @@ void AdativeThreadPool::create_worker() {
 
     bees_.emplace_back([this, thread_start_time]() {
         while(true) {
-            AdativeThreadPool::Task task;
+            Task task;
             std::chrono::steady_clock::time_point enqueue_time;
             {
                 std::unique_lock<std::mutex> lock(mtx_);
 
                 auto start_idle = std::chrono::steady_clock::now();
-                bool timeout = !cv_.wait_for(lock, std::chrono::seconds(5), [this] {
-                    return stop_ || !tasks_.empty();
+                // Adaptive-C: idle 상태가 10초 이상 지속되면 스레드 감소
+                bool timeout = !cv_.wait_for(lock, std::chrono::seconds(10), [this] {
+                    return stop_.load() || !tasks_.empty();
                 });
                 auto end_idle = std::chrono::steady_clock::now();
                 total_idle_time_ms += std::chrono::duration_cast<std::chrono::milliseconds>(end_idle - start_idle).count();
@@ -84,14 +119,13 @@ void AdativeThreadPool::create_worker() {
 }
 
 // 종료
-void AdativeThreadPool::shutdown() {
-    {
-        // unique_lock은 자신을 감싸고 있는 중괄호가 끝날 때까지만 lock을 걸어놓는다.   
-        std::unique_lock<std::mutex> lock(mtx_);
-        if(stop_) return;
-        stop_ = true;
-    }
+void AdaptiveThreadPoolC::shutdown() {
+    stop_ = true;
+    cv_.notify_all();
 
+    if(monitor_.joinable()) {
+        monitor_.join();
+    }
 
     for(std::thread &bee_ : bees_) {
         if(bee_.joinable()) {

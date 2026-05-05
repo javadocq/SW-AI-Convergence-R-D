@@ -1,50 +1,99 @@
-# 🚀 Execution Guide (macOS)
+# 스레드 풀 성능 비교 연구
 
-본 프로젝트는 **macOS (Apple Silicon 및 Intel)** 환경에서 `g++` (Clang wrapper)를 사용하여 빌드 및 실행할 수 있도록 설계되었습니다.
-C++17 표준과 POSIX 스레드 라이브러리(`pthread`)를 사용하여 구현되었습니다.
+이 프로젝트는 다양한 워크로드 특성에서 고정(Fixed) 스레드 풀과 여러 적응형(Adaptive) 스레드 풀 구현의 성능, 안정성 및 복원력을 비교하는 것을 목표로 합니다.
 
----
+## 프로젝트 구조
 
-### 1. 전제 조건 (Prerequisites)
+*   `include/`: `pthread_pool`, `adaptive_thread_pool`, `adaptive_thread_pool_b`, `adaptive_thread_pool_c` 헤더 파일.
+*   `src/`: 스레드 풀 구현을 위한 소스 파일.
+*   `tests/`: 다양한 워크로드를 위한 테스트 시나리오.
+*   `main.cpp`: (테스트에는 직접 사용되지 않지만 다른 목적으로 활용 가능)
 
-맥북에 **Command Line Tools**가 설치되어 있어야 합니다. 설치되지 않았다면 터미널에서 아래 명령어를 실행하여 설치하세요.
+## 스레드 풀 구현체
 
-```bash
-xcode-select --install
-```
+비교를 위해 세 가지 적응형 스레드 풀 정책이 구현되었습니다:
 
-### 2. 컴파일 (Compile)
+1.  **Adaptive-A (큐 길이 기반)**:
+    *   **스케일업 (Scale-up)**: 큐 길이가 활성 스레드 수의 두 배를 초과하면 새 스레드를 생성합니다.
+    *   **스케일다운 (Scale-down)**: 스레드가 5초 동안 유휴 상태인 경우 해당 스레드를 소멸시킵니다.
+2.  **Adaptive-B (큐 대기 시간 기반)**:
+    *   **스케일업 (Scale-up)**: 평균 큐 대기 시간을 모니터링합니다. 50ms를 초과하면 새 스레드를 생성합니다.
+    *   **스케일다운 (Scale-down)**: 스레드가 5초 동안 유휴 상태인 경우 해당 스레드를 소멸시킵니다.
+3.  **Adaptive-C (안정성/지속 시간 기반)**:
+    *   **스케일업 (Scale-up)**: 큐가 긴 상태(큐 길이 > 활성 스레드 수 * 2)가 3초 이상 지속될 경우에만 새 스레드를 생성하여, 급격한 스케일링보다는 안정성을 목표로 합니다.
+    *   **스케일다운 (Scale-down)**: 스레드가 10초 동안 유휴 상태인 경우 해당 스레드를 소멸시켜, 스레드 수명을 길게 유지합니다.
 
-터미널을 열고 프로젝트 루트 폴더(SW-AI-Convergence-R-D)로 이동한 뒤, 아래 명령어를 입력하여 실행 파일(threadpool_test)을 생성합니다.
+## 수집된 성능 메트릭
 
-```bash
-g++ -std=c++17 -Wall -o threadpool_test ThreadPool.cpp main.cpp -lpthread
-```
+각 테스트 시나리오는 고정 및 적응형 스레드 풀 모두에 대해 다음 메트릭을 수집하고 보고합니다:
 
--std=c++17: C++17 표준 문법을 사용합니다.
+*   **Total Execution Time (총 실행 시간)**: 모든 작업을 완료하는 데 걸린 전체 시간.
+*   **Throughput (처리량)**: 초당 처리된 작업 수.
+*   **Max Thread Count (최대 스레드 수)**: 테스트 중 동시에 활성화된 최대 스레드 수.
+*   **Thread Create Count (스레드 생성 횟수)**: 생성된 총 스레드 수.
+*   **Thread Destroy Count (스레드 소멸 횟수)**: 소멸된 총 스레드 수.
+*   **Resize Count (크기 조정 횟수)**: 스레드 풀 크기 조정(생성 + 소멸)의 총 횟수.
+*   **Total Idle Time (ms) (총 유휴 시간)**: 모든 워커 스레드가 유휴 상태로 보낸 누적 시간 (밀리초).
+*   **Completed Tasks (완료된 작업 수)**: 성공적으로 처리된 총 작업 수.
+*   **Avg Latency (ms) (평균 지연 시간)**: 작업 제출부터 완료까지의 평균 시간 (밀리초).
+*   **Avg Queue Wait (ms) (평균 큐 대기 시간)**: 작업이 워커에게 선택되기 전까지 큐에서 대기한 평균 시간 (밀리초).
+*   **Avg Service Time (ms) (평균 서비스 시간)**: 워커가 작업을 적극적으로 처리하는 데 보낸 평균 시간 (밀리초).
+*   **Avg Thread Lifetime (ms) (평균 스레드 수명)**: 소멸된 스레드의 평균 수명 (밀리초).
 
--Wall: 모든 컴파일 경고(Warning)를 표시하여 코드의 잠재적 문제를 확인합니다.
+## 테스트 시나리오 및 실행 방법
 
--o threadpool_test: 생성될 실행 파일의 이름을 지정합니다.
+각 테스트를 컴파일하고 실행하려면 터미널에서 프로젝트의 루트 디렉토리로 이동한 다음 제공된 명령어를 사용하십시오.
 
--lpthread: [중요] POSIX 스레드 라이브러리를 명시적으로 링크합니다.
+### 1. CPU Burst 워크로드
 
-### 3. 실행 (Run)
+*   **파일**: `tests/test_cpu_bound.cpp`
+*   **목적**: 주로 CPU 사이클을 소비하는 무거운 계산 작업 부하에서 스레드 풀 성능을 평가합니다.
+*   **명령어**:
+    ```bash
+    g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_cpu_bound.cpp -o test_cpu && ./test_cpu
+    ```
 
-빌드가 성공적으로 완료되면 아래 명령어로 프로그램을 실행합니다.
+### 2. I/O Burst 워크로드
 
-```bash
-./threadpool_test
-```
+*   **파일**: `tests/test_io_bound.cpp`
+*   **목적**: 스레드 풀이 대기 시간이 긴 작업(예: 디스크 I/O, 네트워크 요청 시뮬레이션)을 얼마나 잘 처리하는지 평가합니다.
+*   **명령어**:
+    ```bash
+    g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_io_bound.cpp -o test_io && ./test_io
+    ```
 
-💡 주요 구현 특징 (Key Features)
-Implicit Interface: 기존 C 스타일의 void\* 인자 전달 방식 대신, **C++ 람다(Lambda)**를 활용하여 사용자가 실행할 코드 블록을 직접 제출할 수 있도록 추상화하였습니다.
+### 3. Mixed 워크로드
 
-RAII Pattern: 객체의 생성자에서 스레드를 생성하고, 소멸자에서 shutdown 및 자원 해제를 자동으로 수행하도록 설계하여 안정성을 높였습니다.
+*   **파일**: `tests/test_mixed_bound.cpp`
+*   **목적**: 계산 및 I/O 작업이 모두 포함된 보다 현실적인 시나리오를 시뮬레이션합니다.
+*   **명령어**:
+    ```bash
+    g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_mixed_bound.cpp -o test_mixed && ./test_mixed
+    ```
 
-POSIX Thread Control: 인터페이스는 현대적이지만, 내부는 pthread_mutex와 pthread_cond를 직접 제어하여 정밀한 동기화를 보장합니다.
+### 4. Burst Traffic 워크로드
 
-⚠️ 문제 해결 (Troubleshooting)
-'pthread.h' file not found: xcode-select --install 명령어를 통해 개발 도구가 정상적으로 설치되었는지 다시 확인하십시오.
+*   **파일**: `tests/test_burst_bound.cpp`
+*   **목적**: 작업 제출의 갑작스럽고 간헐적인 스파이크에 스레드 풀이 얼마나 잘 반응하는지 테스트합니다.
+*   **명령어**:
+    ```bash
+    g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_burst_bound.cpp -o test_burst && ./test_burst
+    ```
 
-Permission Denied: 실행 권한이 없는 경우 chmod +x threadpool_test 명령어로 권한을 부여한 뒤 실행하십시오.
+### 5. Spike + Recovery 워크로드
+
+*   **파일**: `tests/test_spike_bound.cpp`
+*   **목적**: 강렬하고 짧은 기간의 작업 급증 시 스레드 풀의 성능과 이후 효율적으로 스케일다운하고 복구하는 능력을 측정합니다.
+*   **명령어**:
+    ```bash
+    g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_spike_bound.cpp -o test_spike && ./test_spike
+    ```
+
+### 6. 안정성 중심 워크로드
+
+*   **파일**: `tests/test_stability_bound.cpp`
+*   **목적**: 지속적이고 변동하는 부하(마이크로 버스트 포함)에서 과도한 스레드 생성/소멸을 피하면서 다양한 적응형 정책이 안정성을 얼마나 잘 유지하는지 평가합니다.
+*   **명령어**:
+    ```bash
+    g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_stability_bound.cpp -o test_stability && ./test_stability
+    ```

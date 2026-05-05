@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_THREAD_POOL_HPP
-#define ADAPTIVE_THREAD_POOL_HPP
+#ifndef ADAPTIVE_THREAD_POOL_C_HPP
+#define ADAPTIVE_THREAD_POOL_C_HPP
 
 #include <thread>
 #include <vector>
@@ -10,7 +10,7 @@
 #include <condition_variable>
 #include <chrono>
 
-class AdativeThreadPool {
+class AdaptiveThreadPoolC {
 public:
     using Task = std::function<void()>;
     struct TaskWrapper {
@@ -19,31 +19,22 @@ public:
     };
 
     // 생성자 
-    AdativeThreadPool(size_t min_thread_size, size_t max_thread_size);
+    AdaptiveThreadPoolC(size_t min_thread_size, size_t max_thread_size);
 
     // 소멸자
-    ~AdativeThreadPool();
+    ~AdaptiveThreadPoolC();
 
     template<class F, class... Args>
     void submit(F&& f, Args&&... args) {
-        // 함수랑 인자를 하나로 묶어주는 bind 사용
         auto task = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
 
         {
             std::unique_lock<std::mutex> lock(mtx_);
-            // 큐에 작업 추가
             tasks_.push({ [task]() { task(); }, std::chrono::steady_clock::now() });
-
-            // if(tasks_.size() > active_thread) 임계점의 효율을 늘리기 위해 * 2로 설정
-            if(tasks_.size() > (active_thread * 2) && active_thread < max_thread_size) {
-                create_worker();
-            }
         }
-
-        // 하나의 스레드를 가동
         cv_.notify_one();
-
     }
+    
     // 스레드 종료
     void shutdown();
 
@@ -53,7 +44,7 @@ public:
     size_t get_thread_destroy_count() const { return thread_destroy_count.load(); }
     size_t get_resize_count() const { return resize_count.load(); }
     uint64_t get_total_idle_time_ms() const { return total_idle_time_ms.load(); }
-    
+
     // New Metrics getters
     uint64_t get_total_queue_wait_time_ms() const { return total_queue_wait_time_ms.load(); }
     uint64_t get_total_service_time_ms() const { return total_service_time_ms.load(); }
@@ -64,10 +55,12 @@ public:
 private:
     // 스레드 생성
     void create_worker(); 
+    // 큐 상태 모니터링 루프
+    void monitor_loop();
 
-    // 스레드 배열
     std::vector<std::thread> bees_;
     std::queue<TaskWrapper> tasks_;
+    std::thread monitor_;
 
     std::mutex mtx_;
     std::condition_variable cv_;
@@ -75,7 +68,6 @@ private:
     size_t min_thread_size;
     size_t max_thread_size;
 
-    // 현재 가동중인 스레드 수
     std::atomic<size_t> active_thread;  
 
     // Metrics
@@ -84,7 +76,7 @@ private:
     std::atomic<size_t> thread_destroy_count{0};
     std::atomic<size_t> resize_count{0};
     std::atomic<uint64_t> total_idle_time_ms{0};
-    
+
     // New Metrics
     std::atomic<uint64_t> total_queue_wait_time_ms{0};
     std::atomic<uint64_t> total_service_time_ms{0};
@@ -92,7 +84,7 @@ private:
     std::atomic<size_t> completed_task_count{0};
     std::atomic<uint64_t> total_thread_lifetime_ms{0};
 
-    bool stop_;
+    std::atomic<bool> stop_;
 };
 
 #endif
