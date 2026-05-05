@@ -75,7 +75,7 @@ void run_spike_scenario(T& pool, const std::string& mode_name) {
 }
 
 int main() {
-    int total_tasks = 10000;
+    int total_tasks = 1000;
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (Spike + Recovery) " << std::endl;

@@ -87,7 +87,7 @@ void run_burst_scenario(T& pool, const std::string& mode_name, int total_tasks) 
 }
 
 int main() {
-    int total_tasks = 10000; // 40 + 100
+    int total_tasks = 1000;
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (Burst Traffic) " << std::endl;

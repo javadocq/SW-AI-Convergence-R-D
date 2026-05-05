@@ -67,7 +67,7 @@ void cpu_workload(int id) {
 }
 
 int main() {
-    int total_tasks = 10000; // 100개의 작업
+    int total_tasks = 1000;
 
     std::cout << "==========================================" << std::endl;
     std::cout << "   스레드 풀 성능 비교 실험 (CPU Burst)   " << std::endl;
@@ -104,11 +104,11 @@ int main() {
         std::cout << "Thread Create Count: " << pool.get_thread_create_count() << std::endl;
         std::cout << "Thread Destroy Count: " << pool.get_thread_destroy_count() << std::endl;
         std::cout << "Resize Count: " << pool.get_resize_count() << std::endl;
-        std::cout << "Total Idle Time (ms): " << pool.get_total_idle_time_ms() << std::endl;
-        std::cout << "Completed Tasks: " << completed << std::endl;
-        std::cout << "Avg Latency (ms): " << avg_latency << std::endl;
-        std::cout << "Avg Queue Wait (ms): " << avg_queue_wait << std::endl;
-        std::cout << "Avg Service Time (ms): " << avg_service << std::endl;
+        std::cout << "Total Idle Time (ms): " << pool.get_total_idle_time_ms() << "\n";
+        std::cout << "Completed Tasks: " << completed << "\n";
+        std::cout << "Avg Latency (ms): " << avg_latency << "\n";
+        std::cout << "Avg Queue Wait (ms): " << avg_queue_wait << "\n";
+        std::cout << "Avg Service Time (ms): " << avg_service << "\n";
         std::cout << "Avg Thread Lifetime (ms): " << avg_thread_lifetime << std::endl;
         
         auto end = std::chrono::system_clock::now();
