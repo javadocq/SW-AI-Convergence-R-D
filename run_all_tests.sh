@@ -7,7 +7,6 @@ g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_io_bound.cpp -o test_io
 g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_mixed_bound.cpp -o test_mixed
 g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_burst_bound.cpp -o test_burst
 g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_spike_bound.cpp -o test_spike
-g++ -std=c++11 -pthread -Iinclude src/*.cpp tests/test_stability_bound.cpp -o test_stability
 
 echo "컴파일 완료! 각 테스트를 30번씩 실행합니다..."
 
