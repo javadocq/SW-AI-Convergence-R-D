@@ -2,7 +2,7 @@
 #include <thread>
 
 // 생성자 구현
-AdativeThreadPool::AdativeThreadPool(size_t min_thread_size, size_t max_thread_size) 
+AdaptiveThreadPool::AdaptiveThreadPool(size_t min_thread_size, size_t max_thread_size) 
     :min_thread_size(min_thread_size), max_thread_size(max_thread_size), active_thread(0), stop_(false)
 {
 
@@ -13,12 +13,12 @@ AdativeThreadPool::AdativeThreadPool(size_t min_thread_size, size_t max_thread_s
 }
 
 // 소멸자 구현
-AdativeThreadPool::~AdativeThreadPool() {
+AdaptiveThreadPool::~AdaptiveThreadPool() {
     shutdown();
 }
 
 // 스레드 생성
-void AdativeThreadPool::create_worker() {
+void AdaptiveThreadPool::create_worker() {
     active_thread++;
     thread_create_count++;
     resize_count++;
@@ -32,7 +32,7 @@ void AdativeThreadPool::create_worker() {
 
     bees_.emplace_back([this, thread_start_time]() {
         while(true) {
-            AdativeThreadPool::Task task;
+            AdaptiveThreadPool::Task task;
             std::chrono::steady_clock::time_point enqueue_time;
             {
                 std::unique_lock<std::mutex> lock(mtx_);
@@ -84,7 +84,7 @@ void AdativeThreadPool::create_worker() {
 }
 
 // 종료
-void AdativeThreadPool::shutdown() {
+void AdaptiveThreadPool::shutdown() {
     {
         // unique_lock은 자신을 감싸고 있는 중괄호가 끝날 때까지만 lock을 걸어놓는다.   
         std::unique_lock<std::mutex> lock(mtx_);

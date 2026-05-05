@@ -10,7 +10,7 @@
 #include <condition_variable>
 #include <chrono>
 
-class AdativeThreadPool {
+class AdaptiveThreadPool {
 public:
     using Task = std::function<void()>;
     struct TaskWrapper {
@@ -19,10 +19,10 @@ public:
     };
 
     // 생성자 
-    AdativeThreadPool(size_t min_thread_size, size_t max_thread_size);
+    AdaptiveThreadPool(size_t min_thread_size, size_t max_thread_size);
 
     // 소멸자
-    ~AdativeThreadPool();
+    ~AdaptiveThreadPool();
 
     template<class F, class... Args>
     void submit(F&& f, Args&&... args) {
